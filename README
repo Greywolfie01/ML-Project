@@ -1,1 +1,39 @@
-This repository is for a machine learning project for ELEN4025
+## File Descriptions
+
+- **`train.csv`**: Contains personal records for about two-thirds (~8700) of the passengers, to be used as training data.
+
+- **`test.csv`**: Holds personal records for the remaining one-third (~4300) of the passengers, to be used as test data. The task is to predict the value of `Transported` for these passengers.
+
+- **`sample_submission.csv`**: A sample submission file in the correct format.
+
+## Data Field Descriptions
+
+### Common Fields in `train.csv` and `test.csv`:
+
+- **`PassengerId`**: A unique Id for each passenger, formatted as `gggg_pp` where `gggg` indicates a group the passenger is traveling with, and `pp` is their number within the group. People in a group are often family members, but not always.
+
+- **`HomePlanet`**: The planet the passenger departed from, typically their planet of permanent residence.
+
+- **`CryoSleep`**: Indicates whether the passenger elected to be put into suspended animation for the duration of the voyage. Passengers in cryosleep are confined to their cabins.
+
+- **`Cabin`**: The cabin number where the passenger is staying, formatted as `deck/num/side`, where `side` can be either `P` for Port or `S` for Starboard.
+
+- **`Destination`**: The planet the passenger will be debarking to.
+
+- **`Age`**: The age of the passenger.
+
+- **`VIP`**: Whether the passenger has paid for special VIP service during the voyage.
+
+- **`RoomService`, `FoodCourt`, `ShoppingMall`, `Spa`, `VRDeck`**: The amount the passenger has billed at each of the Spaceship Titanic's many luxury amenities.
+
+- **`Name`**: The first and last names of the passenger.
+
+### Specific to `train.csv`:
+
+- **`Transported`**: Whether the passenger was transported to another dimension. This is the target column for prediction.
+
+### Specific to `sample_submission.csv`:
+
+- Contains two columns:
+    - **`PassengerId`**: Id for each passenger in the test set.
+    - **`Transported`**: The target prediction for each passenger, either `True` or `False`.
