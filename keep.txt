@@ -1,0 +1,39 @@
+---------- Code for each block plot individually ----------
+
+# Create subplots for each continuous feature vs Target
+fig, axs = plt.subplots(nrows=len(cont_cols), figsize=(8, 4 * len(cont_cols)))
+
+if len(cont_cols) == 1: # Ensure axs is iterable
+    axs = [axs]
+
+for i, col in enumerate(cont_cols):
+    sns.boxplot(x='Transported', y=col, data=train_df, ax=axs[i])
+    axs[i].set_title(f'{col.title()} vs Transported', fontsize=16)
+    axs[i].set_xlabel('Transported', fontsize=14)
+    axs[i].set_ylabel(col.title(), fontsize=14)
+
+plt.tight_layout()
+plt.show()
+
+---------- Code for Transported Bar Graph ----------
+
+# Calculate the proportion of each class in the target variable 'Transported'
+class_counts = train_df['Transported'].value_counts(normalize=True) * 100
+
+# Set the color palette
+colors = sns.color_palette('pastel')[0:len(class_counts)]
+
+# Plot the distribution of the target variable
+plt.figure(figsize=(8, 4))
+sns.barplot(x=class_counts.index, y=class_counts.values, palette=colors)
+plt.title('Distribution of Target Variable (Transported)', fontsize=16)
+plt.xlabel('Transported', fontsize=14)
+plt.ylabel('Percentage (%)', fontsize=14)
+
+# Annotate proportions on the bars
+for index, value in enumerate(class_counts):
+    plt.text(index, value + 1, f'{value:.2f}%', ha='center', fontsize=14)
+
+sns.despine()
+plt.tight_layout()
+plt.show()
