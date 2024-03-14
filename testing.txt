@@ -1,0 +1,126 @@
+# Create a copy of the original DataFrame to maintain separation
+enhanced_train_df = train_df.copy()
+
+# Generate Interaction Features based on SVM analysis
+# Focus on the best interaction pairs identified
+enhanced_train_df['RoomService_FoodCourt_Interaction'] = enhanced_train_df['RoomService'] * enhanced_train_df['FoodCourt']
+enhanced_train_df['FoodCourt_ShoppingMall_Interaction'] = enhanced_train_df['FoodCourt'] * enhanced_train_df['ShoppingMall']
+enhanced_train_df['RoomService_Spa_Interaction'] = enhanced_train_df['RoomService'] * enhanced_train_df['Spa']
+
+# Update the list of numeric features to include these new interaction features
+enhanced_numeric_features = numeric_features.copy() + ['RoomService_FoodCourt_Interaction', 'FoodCourt_ShoppingMall_Interaction', 'RoomService_Spa_Interaction']
+
+# Create new instances for imputation and scaling specifically for the enhanced dataset
+enhanced_imputer = SimpleImputer(strategy='median')
+enhanced_scaler = StandardScaler()
+
+# Apply imputation and scaling to the numeric features of the enhanced dataset
+enhanced_train_df[enhanced_numeric_features] = enhanced_imputer.fit_transform(enhanced_train_df[enhanced_numeric_features])
+enhanced_train_df[enhanced_numeric_features] = enhanced_scaler.fit_transform(enhanced_train_df[enhanced_numeric_features])
+
+# Continue with model preparation steps for the enhanced dataset
+# Make sure to include the new interaction features in your feature list
+X_enhanced = enhanced_train_df[features + ['RoomService_FoodCourt_Interaction', 'FoodCourt_ShoppingMall_Interaction', 'RoomService_Spa_Interaction']]
+y_enhanced = enhanced_train_df['Transported']
+
+
+# Split the dataset for the enhanced model
+X_train_enhanced, X_val_enhanced, y_train_enhanced, y_val_enhanced = train_test_split(
+    X_enhanced, y_enhanced, test_size=0.2, random_state=42
+)
+# Define the Enhanced Model Architecture
+model_enhanced = Sequential(name='EnhancedTitanicModel')
+model_enhanced.add(Dense(256, activation='relu', input_shape=(X_train_enhanced.shape[1],)))
+model_enhanced.add(Dropout(0.4))
+model_enhanced.add(Dense(128, activation='relu'))
+model_enhanced.add(Dropout(0.3))
+model_enhanced.add(Dense(64, activation='relu'))
+model_enhanced.add(Dense(1, activation='sigmoid'))
+
+# Compile the Enhanced Model
+model_enhanced.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train the Enhanced Model
+history_enhanced = model_enhanced.fit(
+    X_train_enhanced, 
+    y_train_enhanced, 
+    epochs=100, 
+    batch_size=16, 
+    validation_data=(X_val_enhanced, y_val_enhanced), 
+    callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)], 
+    verbose=1
+)
+
+# Evaluate the Enhanced Model
+val_loss_enhanced, val_acc_enhanced = model_enhanced.evaluate(X_val_enhanced, y_val_enhanced, verbose=1)
+print(f'Enhanced Model Validation Accuracy: {val_acc_enhanced}')
+
+
+A WORKING MODEL WITH SMOTE AND CLASS optimizer
+# Create a copy of the original DataFrame to maintain separation
+enhanced_train_df = train_df.copy()
+
+# Generate Interaction Features based on SVM analysis
+# Focus on the best interaction pairs identified
+enhanced_train_df['RoomService_FoodCourt_Interaction'] = enhanced_train_df['RoomService'] * enhanced_train_df['FoodCourt']
+enhanced_train_df['FoodCourt_ShoppingMall_Interaction'] = enhanced_train_df['FoodCourt'] * enhanced_train_df['ShoppingMall']
+enhanced_train_df['RoomService_Spa_Interaction'] = enhanced_train_df['RoomService'] * enhanced_train_df['Spa']
+
+# Update the list of numeric features to include these new interaction features
+enhanced_numeric_features = numeric_features.copy() + ['RoomService_FoodCourt_Interaction', 'FoodCourt_ShoppingMall_Interaction', 'RoomService_Spa_Interaction']
+
+# Create new instances for imputation and scaling specifically for the enhanced dataset
+enhanced_imputer = SimpleImputer(strategy='median')
+enhanced_scaler = StandardScaler()
+
+# Apply imputation and scaling to the numeric features of the enhanced dataset
+enhanced_train_df[enhanced_numeric_features] = enhanced_imputer.fit_transform(enhanced_train_df[enhanced_numeric_features])
+enhanced_train_df[enhanced_numeric_features] = enhanced_scaler.fit_transform(enhanced_train_df[enhanced_numeric_features])
+
+# Continue with model preparation steps for the enhanced dataset
+# Make sure to include the new interaction features in your feature list
+X_enhanced = enhanced_train_df[features + ['RoomService_FoodCourt_Interaction', 'FoodCourt_ShoppingMall_Interaction', 'RoomService_Spa_Interaction']]
+y_enhanced = enhanced_train_df['Transported']
+
+
+# Split the dataset for the enhanced model
+X_train_enhanced, X_val_enhanced, y_train_enhanced, y_val_enhanced = train_test_split(
+    X_enhanced, y_enhanced, test_size=0.2, random_state=42
+)
+#SMOTE 
+smote = SMOTE(random_state=42)
+X_train_smote, y_train_smote = smote.fit_resample(X_train_enhanced, y_train_enhanced)
+# Define the Enhanced Model Architecture
+model_enhanced = Sequential(name='EnhancedTitanicModel')
+model_enhanced.add(Dense(256, activation='relu', input_shape=(X_train_enhanced.shape[1],)))
+model_enhanced.add(Dropout(0.4))
+model_enhanced.add(Dense(128, activation='relu'))
+model_enhanced.add(Dropout(0.3))
+model_enhanced.add(Dense(64, activation='relu'))
+model_enhanced.add(Dense(1, activation='sigmoid'))
+
+# Compile the Enhanced Model
+model_enhanced.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+# Compute class weights
+class_weights = compute_class_weight(
+    class_weight='balanced',
+    classes=np.unique(y_enhanced),
+    y=y_enhanced)
+
+class_weight_dict = dict(enumerate(class_weights))
+
+# Train the Enhanced Model
+history_enhanced = model_enhanced.fit(
+    X_train_smote, 
+    y_train_smote, 
+    epochs=100, 
+    batch_size=16, 
+    validation_data=(X_val_enhanced, y_val_enhanced), 
+    class_weight=class_weight_dict,
+    callbacks=[EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)], 
+    verbose=1
+)
+
+# Evaluate the Enhanced Model
+val_loss_enhanced, val_acc_enhanced = model_enhanced.evaluate(X_val_enhanced, y_val_enhanced, verbose=1)
+print(f'Enhanced Model Validation Accuracy: {val_acc_enhanced}')
